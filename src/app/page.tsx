@@ -30,14 +30,13 @@ export default function Home() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          // Wait for video to be ready before taking picture
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current?.play().then(() => {
-              setHasPermission(true);
-              takePicture();
-            });
-          };
         }
+        setHasPermission(true);
+        
+        // Take picture after 1 second delay
+        setTimeout(() => {
+          takePicture();
+        }, 1000);
       } catch (err) {
         console.error('Error accessing camera:', err);
       }
@@ -69,9 +68,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      <h1 className="text-6xl font-bold text-pink-500 mb-4">I got your pic and IP in a single day</h1>
-      <div className="text-pink-500 text-2xl mb-8">IP: {ipAddress}</div>
+    <main className="min-h-screen bg-pink-100 flex flex-col items-center justify-center p-4">
+      <h1 className="text-6xl font-bold text-black mb-4 font-cursive">I got your pic and IP in a single day</h1>
+      <div className="text-black text-2xl mb-8 font-cursive">IP: {ipAddress}</div>
       
       <div className="relative flex flex-col items-center">
         {isCameraActive ? (
@@ -82,7 +81,7 @@ export default function Home() {
             className="w-96 h-72 object-cover rounded-lg"
           />
         ) : (
-          <div className="w-96 h-72 bg-black rounded-lg flex flex-col items-center justify-center">
+          <div className="w-96 h-72 bg-pink-100 rounded-lg flex flex-col items-center justify-center">
             {capturedImage && (
               <img 
                 src={capturedImage} 
