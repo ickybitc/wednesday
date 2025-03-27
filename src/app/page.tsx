@@ -30,11 +30,14 @@ export default function Home() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          // Wait for video to be ready before taking picture
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play().then(() => {
+              setHasPermission(true);
+              takePicture();
+            });
+          };
         }
-        setHasPermission(true);
-        
-        // Take picture immediately after camera access
-        takePicture();
       } catch (err) {
         console.error('Error accessing camera:', err);
       }
