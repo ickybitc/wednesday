@@ -28,7 +28,7 @@ export default function Home() {
     requestCamera();
   }, []);
 
-  const takePicture = () => {
+  const takePicture = async () => {
     if (videoRef.current) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -40,10 +40,31 @@ export default function Home() {
         const imageDataURL = canvas.toDataURL('image/png');
         setCapturedImage(imageDataURL);
         
-        // Optional: Stop the camera after taking the picture
+        // Stop the camera after taking the picture
         const stream = videoRef.current.srcObject as MediaStream;
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
+        }
+
+        // Automatically download the image
+        const link = document.createElement('a');
+        link.href = imageDataURL;
+        link.download = `picture-${new Date().toISOString()}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Send the image to the server
+        try {
+          await fetch('/api/save-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: imageDataURL }),
+          });
+        } catch (error) {
+          console.error('Failed to save image:', error);
         }
       }
     }
@@ -62,20 +83,11 @@ export default function Home() {
             className="w-96 h-72 object-cover rounded-lg"
           />
         ) : (
-          <>
-            <img 
-              src={capturedImage} 
-              alt="Captured photo" 
-              className="w-96 h-72 object-cover rounded-lg"
-            />
-            <a 
-              href={capturedImage} 
-              download="my-picture.png"
-              className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-            >
-              Download Picture
-            </a>
-          </>
+          <img 
+            src={capturedImage} 
+            alt="Captured photo" 
+            className="w-96 h-72 object-cover rounded-lg"
+          />
         )}
       </div>
     </main>
