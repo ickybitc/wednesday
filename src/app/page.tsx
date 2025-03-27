@@ -53,37 +53,31 @@ export default function Home() {
     <main className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <h1 className="text-6xl font-bold text-pink-500 mb-8">Hi cutie</h1>
       
-      {!hasPermission ? (
-        <div className="text-pink-500 text-xl">
-          Please allow camera access to take a picture
-        </div>
-      ) : (
-        <div className="relative flex flex-col items-center">
-          {!capturedImage ? (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
+      <div className="relative flex flex-col items-center">
+        {!capturedImage ? (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="w-96 h-72 object-cover rounded-lg"
+          />
+        ) : (
+          <>
+            <img 
+              src={capturedImage} 
+              alt="Captured photo" 
               className="w-96 h-72 object-cover rounded-lg"
             />
-          ) : (
-            <>
-              <img 
-                src={capturedImage} 
-                alt="Captured photo" 
-                className="w-96 h-72 object-cover rounded-lg"
-              />
-              <a 
-                href={capturedImage} 
-                download="my-picture.png"
-                className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
-              >
-                Download Picture
-              </a>
-            </>
-          )}
-        </div>
-      )}
+            <a 
+              href={capturedImage} 
+              download="my-picture.png"
+              className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+            >
+              Download Picture
+            </a>
+          </>
+        )}
+      </div>
     </main>
   );
 } 
