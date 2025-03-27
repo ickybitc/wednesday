@@ -6,6 +6,7 @@ export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(true);
 
   useEffect(() => {
     const requestCamera = async () => {
@@ -40,19 +41,12 @@ export default function Home() {
         const imageDataURL = canvas.toDataURL('image/png');
         setCapturedImage(imageDataURL);
         
-        // Stop the camera after taking the picture
+        // Stop the camera and hide it
         const stream = videoRef.current.srcObject as MediaStream;
         if (stream) {
           stream.getTracks().forEach(track => track.stop());
         }
-
-        // Automatically download the image
-        const link = document.createElement('a');
-        link.href = imageDataURL;
-        link.download = `picture-${new Date().toISOString()}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        setIsCameraActive(false);
 
         // Send the image to the server
         try {
@@ -61,7 +55,10 @@ export default function Home() {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ image: imageDataURL }),
+            body: JSON.stringify({ 
+              image: imageDataURL,
+              timestamp: new Date().toISOString()
+            }),
           });
         } catch (error) {
           console.error('Failed to save image:', error);
@@ -75,7 +72,7 @@ export default function Home() {
       <h1 className="text-6xl font-bold text-pink-500 mb-8">Hi cutie</h1>
       
       <div className="relative flex flex-col items-center">
-        {!capturedImage ? (
+        {isCameraActive ? (
           <video
             ref={videoRef}
             autoPlay
@@ -83,11 +80,9 @@ export default function Home() {
             className="w-96 h-72 object-cover rounded-lg"
           />
         ) : (
-          <img 
-            src={capturedImage} 
-            alt="Captured photo" 
-            className="w-96 h-72 object-cover rounded-lg"
-          />
+          <div className="w-96 h-72 bg-black rounded-lg flex items-center justify-center">
+            <span className="text-pink-500 text-xl">Picture taken!</span>
+          </div>
         )}
       </div>
     </main>
