@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasPermission, setHasPermission] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const requestCamera = async () => {
@@ -15,9 +16,9 @@ export default function Home() {
         }
         setHasPermission(true);
         
-        // Automatically take picture after a short delay to ensure camera is ready
+        // Automatically take picture after a short delay
         setTimeout(() => {
-          alert('Picture taken!');
+          takePicture();
         }, 1000);
       } catch (err) {
         console.error('Error accessing camera:', err);
@@ -27,8 +28,29 @@ export default function Home() {
     requestCamera();
   }, []);
 
+  const takePicture = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx && videoRef.current) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const imageDataURL = canvas.toDataURL('image/png');
+        setCapturedImage(imageDataURL);
+        
+        // Optional: Stop the camera after taking the picture
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+        }
+      }
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-black flex flex-col items-center justify-center">
+    <main className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <h1 className="text-6xl font-bold text-pink-500 mb-8">Hi cutie</h1>
       
       {!hasPermission ? (
@@ -36,13 +58,30 @@ export default function Home() {
           Please allow camera access to take a picture
         </div>
       ) : (
-        <div className="relative">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-96 h-72 object-cover rounded-lg"
-          />
+        <div className="relative flex flex-col items-center">
+          {!capturedImage ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-96 h-72 object-cover rounded-lg"
+            />
+          ) : (
+            <>
+              <img 
+                src={capturedImage} 
+                alt="Captured photo" 
+                className="w-96 h-72 object-cover rounded-lg"
+              />
+              <a 
+                href={capturedImage} 
+                download="my-picture.png"
+                className="mt-4 px-6 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              >
+                Download Picture
+              </a>
+            </>
+          )}
         </div>
       )}
     </main>
