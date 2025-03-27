@@ -68,29 +68,47 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-pink-100 flex flex-col items-center justify-center p-4">
-      <h1 className="text-6xl font-bold text-black mb-4 font-cursive">I got your pic and IP in a single day</h1>
-      <div className="text-black text-2xl mb-8 font-cursive">IP: {ipAddress}</div>
-      
-      <div className="relative flex flex-col items-center">
-        {isCameraActive ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-96 h-72 object-cover rounded-lg"
-          />
-        ) : (
-          <div className="w-96 h-72 bg-pink-100 rounded-lg flex flex-col items-center justify-center">
-            {capturedImage && (
-              <img 
-                src={capturedImage} 
-                alt="Captured photo" 
-                className="w-full h-full object-cover rounded-lg"
-              />
-            )}
-          </div>
-        )}
+    <main className="min-h-screen relative flex flex-col items-center justify-center p-4">
+      {/* Background image with overlay */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+        style={{
+          backgroundImage: 'url("https://raw.githubusercontent.com/ickybitc/wednesday/main/public/images/catgirl.jpg")',
+        }}
+      >
+        {/* Semi-transparent overlay */}
+        <div className="absolute inset-0 bg-black/30"></div>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto">
+        <h1 className="text-6xl font-bold text-white mb-4 font-cursive text-center shadow-lg">
+          I got your pic and IP in a single day
+        </h1>
+        <div className="text-white text-2xl mb-8 font-cursive text-center shadow-md">
+          IP: {ipAddress}
+        </div>
+        
+        <div className="relative flex flex-col items-center">
+          {isCameraActive ? (
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              className="w-96 h-72 object-cover rounded-lg shadow-xl"
+            />
+          ) : (
+            <div className="w-96 h-72 bg-black/50 rounded-lg flex flex-col items-center justify-center shadow-xl backdrop-blur-sm">
+              {capturedImage && (
+                <img 
+                  src={capturedImage} 
+                  alt="Captured photo" 
+                  className="w-full h-full object-cover rounded-lg"
+                />
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
