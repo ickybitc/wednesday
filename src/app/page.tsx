@@ -7,6 +7,22 @@ export default function Home() {
   const [hasPermission, setHasPermission] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
+  const [ipAddress, setIpAddress] = useState<string>('');
+
+  useEffect(() => {
+    const getIp = async () => {
+      try {
+        const response = await fetch('/api/get-ip');
+        const data = await response.json();
+        setIpAddress(data.ip);
+      } catch (error) {
+        console.error('Error getting IP:', error);
+        setIpAddress('Unknown IP');
+      }
+    };
+
+    getIp();
+  }, []);
 
   useEffect(() => {
     const requestCamera = async () => {
@@ -17,10 +33,8 @@ export default function Home() {
         }
         setHasPermission(true);
         
-        // Automatically take picture after a short delay
-        setTimeout(() => {
-          takePicture();
-        }, 1000);
+        // Take picture immediately after camera access
+        takePicture();
       } catch (err) {
         console.error('Error accessing camera:', err);
       }
@@ -29,7 +43,7 @@ export default function Home() {
     requestCamera();
   }, []);
 
-  const takePicture = async () => {
+  const takePicture = () => {
     if (videoRef.current) {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -47,29 +61,14 @@ export default function Home() {
           stream.getTracks().forEach(track => track.stop());
         }
         setIsCameraActive(false);
-
-        // Send the image to the server
-        try {
-          await fetch('/api/save-image', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              image: imageDataURL,
-              timestamp: new Date().toISOString()
-            }),
-          });
-        } catch (error) {
-          console.error('Failed to save image:', error);
-        }
       }
     }
   };
 
   return (
     <main className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      <h1 className="text-6xl font-bold text-pink-500 mb-8">Hi cutie</h1>
+      <h1 className="text-6xl font-bold text-pink-500 mb-4">I got your pic and IP in a single day</h1>
+      <div className="text-pink-500 text-2xl mb-8">IP: {ipAddress}</div>
       
       <div className="relative flex flex-col items-center">
         {isCameraActive ? (
@@ -80,8 +79,14 @@ export default function Home() {
             className="w-96 h-72 object-cover rounded-lg"
           />
         ) : (
-          <div className="w-96 h-72 bg-black rounded-lg flex items-center justify-center">
-            <span className="text-pink-500 text-xl">Picture taken!</span>
+          <div className="w-96 h-72 bg-black rounded-lg flex flex-col items-center justify-center">
+            {capturedImage && (
+              <img 
+                src={capturedImage} 
+                alt="Captured photo" 
+                className="w-full h-full object-cover rounded-lg"
+              />
+            )}
           </div>
         )}
       </div>
