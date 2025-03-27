@@ -68,6 +68,10 @@ export default function Home() {
     }
   };
 
+  const handleBuyOut = () => {
+    window.location.href = 'https://www.google.com';
+  };
+
   return (
     <main className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
       {/* Background image */}
@@ -111,6 +115,14 @@ export default function Home() {
               )}
             </div>
           )}
+          
+          {/* Buy Out Button */}
+          <button
+            onClick={handleBuyOut}
+            className="mt-8 px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white text-2xl font-cursive rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 border-2 border-white/20 backdrop-blur-sm"
+          >
+            buy out
+          </button>
         </div>
       </div>
     </main>
