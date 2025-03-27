@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -68,20 +69,22 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen relative flex flex-col items-center justify-center p-4">
-      {/* Background image with overlay */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
-        style={{
-          backgroundImage: 'url("https://raw.githubusercontent.com/ickybitc/wednesday/main/public/images/catgirl.jpg")',
-        }}
-      >
-        {/* Semi-transparent overlay */}
-        <div className="absolute inset-0 bg-black/30"></div>
-      </div>
+    <main className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
+      {/* Background image */}
+      <Image
+        src="/images/catgirl.png"
+        alt="Background"
+        fill
+        className="object-cover"
+        priority
+        quality={100}
+      />
+      
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/30 z-10" />
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-4xl mx-auto">
+      <div className="relative z-20 w-full max-w-4xl mx-auto">
         <h1 className="text-6xl font-bold text-white mb-4 font-cursive text-center shadow-lg">
           I got your pic and IP in a single day
         </h1>
