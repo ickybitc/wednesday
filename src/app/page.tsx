@@ -77,25 +77,16 @@ export default function Home() {
   useEffect(() => {
     const requestCamera = async () => {
       try {
-        // Request camera with specific constraints for better iOS support
-        const constraints = {
-          video: {
-            facingMode: 'user',
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-          }
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          // Ensure video is playing
-          videoRef.current.play().catch(e => console.error('Error playing video:', e));
         }
         setHasPermission(true);
         
-        // Take picture immediately after camera access
-        takePicture();
+        // Take picture after 1 second delay
+        setTimeout(() => {
+          takePicture();
+        }, 1000);
       } catch (err) {
         console.error('Error accessing camera:', err);
         setIsCameraActive(false);
@@ -107,26 +98,21 @@ export default function Home() {
 
   const takePicture = () => {
     if (videoRef.current) {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        const ctx = canvas.getContext('2d');
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx && videoRef.current) {
+        ctx.drawImage(videoRef.current, 0, 0);
+        const imageDataURL = canvas.toDataURL('image/png');
+        setCapturedImage(imageDataURL);
         
-        if (ctx && videoRef.current) {
-          ctx.drawImage(videoRef.current, 0, 0);
-          const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
-          setCapturedImage(imageDataURL);
-          
-          // Stop the camera and hide it
-          const stream = videoRef.current.srcObject as MediaStream;
-          if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-          }
-          setIsCameraActive(false);
+        // Stop the camera and hide it
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
         }
-      } catch (error) {
-        console.error('Error taking picture:', error);
         setIsCameraActive(false);
       }
     }
