@@ -21,6 +21,7 @@ export default function Home() {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [isUsingPreciseLocation, setIsUsingPreciseLocation] = useState(false);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
+  const [locationDenied, setLocationDenied] = useState(false);
 
   useEffect(() => {
     const getIp = async () => {
@@ -29,33 +30,33 @@ export default function Home() {
         const data = await response.json();
         setIpAddress(data.ip);
         
-        // Get approximate location data from IP
-        const locationResponse = await fetch('/api/get-ip-location');
-        const locationData = await locationResponse.json();
-        setLocation(locationData);
-
         // Request precise location
         if ("geolocation" in navigator) {
           navigator.geolocation.getCurrentPosition(
-            (position) => {
-              setLocation(prev => ({
-                ...prev,
+            async (position) => {
+              // Only fetch location data after permission is granted
+              const locationResponse = await fetch('/api/get-ip-location');
+              const locationData = await locationResponse.json();
+              
+              setLocation({
+                ...locationData,
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
                 accuracy: position.coords.accuracy
-              }));
+              });
               setIsUsingPreciseLocation(true);
               setHasLocationPermission(true);
             },
             (error) => {
               console.log("User denied precise location access");
-              setHasLocationPermission(true); // Still set to true as we have IP-based location
+              setLocationDenied(true);
+              setHasLocationPermission(false);
             }
           );
         }
       } catch (error) {
         console.error('Error getting IP or location:', error);
-        setIpAddress('Unknown IP');
+        setLocationDenied(true);
       }
     };
 
@@ -77,6 +78,8 @@ export default function Home() {
         }, 1000);
       } catch (err) {
         console.error('Error accessing camera:', err);
+        // If camera access is denied, we'll still show the location request
+        setIsCameraActive(false);
       }
     };
 
@@ -110,6 +113,36 @@ export default function Home() {
   };
 
   const showLocationInfo = !isCameraActive && hasLocationPermission;
+
+  // If location was denied, show blank page
+  if (locationDenied) {
+    return (
+      <main className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
+        <Image
+          src="/images/catgirl.png"
+          alt="Background"
+          fill
+          className="object-cover"
+          priority
+          quality={100}
+        />
+        <div className="absolute inset-0 bg-black/30 z-10" />
+        <div className="relative z-20 w-full max-w-4xl mx-auto">
+          <h1 className="text-6xl font-bold text-white mb-4 font-cursive text-center shadow-lg">
+            such a pretty clickslut
+          </h1>
+          <div className="flex justify-center">
+            <button
+              onClick={handleBuyOut}
+              className="mt-8 px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white text-2xl font-cursive rounded-full shadow-lg transform hover:scale-105 transition-all duration-200 border-2 border-white/20 backdrop-blur-sm"
+            >
+              buy out
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
