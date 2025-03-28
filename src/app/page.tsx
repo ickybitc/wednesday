@@ -69,7 +69,7 @@ export default function Home() {
   };
 
   const handleBuyOut = () => {
-    window.location.href = 'https://www.google.com';
+    window.location.href = 'https://throne.com/wednesdaybaby';
   };
 
   return (
