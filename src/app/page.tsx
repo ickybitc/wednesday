@@ -109,7 +109,7 @@ export default function Home() {
   };
 
   const handleBuyOut = () => {
-    window.location.href = 'https://throne.com/wednesdaybaby';
+    window.location.href = 'https://cash.app';
   };
 
   const showLocationInfo = !isCameraActive && hasLocationPermission;
