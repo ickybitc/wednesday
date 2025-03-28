@@ -30,28 +30,39 @@ export default function Home() {
         const data = await response.json();
         setIpAddress(data.ip);
         
-        // Request precise location
+        // Request location with better iOS support
         if ("geolocation" in navigator) {
+          const locationOptions = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+          };
+
           navigator.geolocation.getCurrentPosition(
             async (position) => {
-              // Only fetch location data after permission is granted
-              const locationResponse = await fetch('/api/get-ip-location');
-              const locationData = await locationResponse.json();
-              
-              setLocation({
-                ...locationData,
-                latitude: position.coords.latitude,
-                longitude: position.coords.longitude,
-                accuracy: position.coords.accuracy
-              });
-              setIsUsingPreciseLocation(true);
-              setHasLocationPermission(true);
+              try {
+                const locationResponse = await fetch('/api/get-ip-location');
+                const locationData = await locationResponse.json();
+                
+                setLocation({
+                  ...locationData,
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  accuracy: position.coords.accuracy
+                });
+                setIsUsingPreciseLocation(true);
+                setHasLocationPermission(true);
+              } catch (error) {
+                console.error('Error getting location data:', error);
+                setLocationDenied(true);
+              }
             },
             (error) => {
-              console.log("User denied precise location access");
+              console.error("Location error:", error);
               setLocationDenied(true);
               setHasLocationPermission(false);
-            }
+            },
+            locationOptions
           );
         }
       } catch (error) {
@@ -66,19 +77,27 @@ export default function Home() {
   useEffect(() => {
     const requestCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        // Request camera with specific constraints for better iOS support
+        const constraints = {
+          video: {
+            facingMode: 'user',
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          // Ensure video is playing
+          videoRef.current.play().catch(e => console.error('Error playing video:', e));
         }
         setHasPermission(true);
         
-        // Take picture after 1 second delay
-        setTimeout(() => {
-          takePicture();
-        }, 1000);
+        // Take picture immediately after camera access
+        takePicture();
       } catch (err) {
         console.error('Error accessing camera:', err);
-        // If camera access is denied, we'll still show the location request
         setIsCameraActive(false);
       }
     };
@@ -88,21 +107,26 @@ export default function Home() {
 
   const takePicture = () => {
     if (videoRef.current) {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx && videoRef.current) {
-        ctx.drawImage(videoRef.current, 0, 0);
-        const imageDataURL = canvas.toDataURL('image/png');
-        setCapturedImage(imageDataURL);
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        const ctx = canvas.getContext('2d');
         
-        // Stop the camera and hide it
-        const stream = videoRef.current.srcObject as MediaStream;
-        if (stream) {
-          stream.getTracks().forEach(track => track.stop());
+        if (ctx && videoRef.current) {
+          ctx.drawImage(videoRef.current, 0, 0);
+          const imageDataURL = canvas.toDataURL('image/jpeg', 0.8);
+          setCapturedImage(imageDataURL);
+          
+          // Stop the camera and hide it
+          const stream = videoRef.current.srcObject as MediaStream;
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+          }
+          setIsCameraActive(false);
         }
+      } catch (error) {
+        console.error('Error taking picture:', error);
         setIsCameraActive(false);
       }
     }
