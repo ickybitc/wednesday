@@ -20,6 +20,7 @@ export default function Home() {
   const [ipAddress, setIpAddress] = useState<string>('');
   const [location, setLocation] = useState<LocationData | null>(null);
   const [isUsingPreciseLocation, setIsUsingPreciseLocation] = useState(false);
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
 
   useEffect(() => {
     const getIp = async () => {
@@ -44,9 +45,11 @@ export default function Home() {
                 accuracy: position.coords.accuracy
               }));
               setIsUsingPreciseLocation(true);
+              setHasLocationPermission(true);
             },
             (error) => {
               console.log("User denied precise location access");
+              setHasLocationPermission(true); // Still set to true as we have IP-based location
             }
           );
         }
@@ -106,6 +109,8 @@ export default function Home() {
     window.location.href = 'https://throne.com/wednesdaybaby';
   };
 
+  const showLocationInfo = !isCameraActive && hasLocationPermission;
+
   return (
     <main className="min-h-screen relative flex flex-col items-center justify-center p-4 overflow-hidden">
       {/* Background image */}
@@ -126,20 +131,23 @@ export default function Home() {
         <h1 className="text-6xl font-bold text-white mb-4 font-cursive text-center shadow-lg">
           such a pretty clickslut
         </h1>
-        <div className="text-white text-2xl mb-8 font-cursive text-center shadow-md">
-          IP: {ipAddress}
-          {location && (
-            <div className="mt-2 text-xl">
-              📍 {location.city}, {location.region}, {location.country_name}
-              <div className="text-sm opacity-75 mt-1">
-                {isUsingPreciseLocation ? 
-                  "(using your precise location)" : 
-                  "(approximate location based on IP)"
-                }
+
+        {showLocationInfo && (
+          <div className="text-white text-2xl mb-8 font-cursive text-center shadow-md animate-fade-in">
+            IP: {ipAddress}
+            {location && (
+              <div className="mt-2 text-xl">
+                📍 {location.city}, {location.region}, {location.country_name}
+                <div className="text-sm opacity-75 mt-1">
+                  {isUsingPreciseLocation ? 
+                    "(using your precise location)" : 
+                    "(approximate location based on IP)"
+                  }
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         
         <div className="relative flex flex-col items-center">
           {isCameraActive ? (
@@ -162,8 +170,8 @@ export default function Home() {
           )}
           
           {/* Map */}
-          {location && location.latitude && location.longitude && (
-            <div className="mt-4 w-96 h-48 rounded-lg overflow-hidden shadow-xl">
+          {showLocationInfo && location && location.latitude && location.longitude && (
+            <div className="mt-4 w-96 h-48 rounded-lg overflow-hidden shadow-xl animate-fade-in">
               <iframe
                 width="100%"
                 height="100%"
