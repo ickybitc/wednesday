@@ -3,13 +3,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 
+interface LocationData {
+  city?: string;
+  region?: string;
+  country_name?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy?: number;
+}
+
 export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasPermission, setHasPermission] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [ipAddress, setIpAddress] = useState<string>('');
-  const [location, setLocation] = useState<any>(null);
+  const [location, setLocation] = useState<LocationData | null>(null);
+  const [isUsingPreciseLocation, setIsUsingPreciseLocation] = useState(false);
 
   useEffect(() => {
     const getIp = async () => {
@@ -18,10 +28,28 @@ export default function Home() {
         const data = await response.json();
         setIpAddress(data.ip);
         
-        // Get location data
+        // Get approximate location data from IP
         const locationResponse = await fetch('/api/get-ip-location');
         const locationData = await locationResponse.json();
         setLocation(locationData);
+
+        // Request precise location
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              setLocation(prev => ({
+                ...prev,
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+                accuracy: position.coords.accuracy
+              }));
+              setIsUsingPreciseLocation(true);
+            },
+            (error) => {
+              console.log("User denied precise location access");
+            }
+          );
+        }
       } catch (error) {
         console.error('Error getting IP or location:', error);
         setIpAddress('Unknown IP');
@@ -103,6 +131,12 @@ export default function Home() {
           {location && (
             <div className="mt-2 text-xl">
               📍 {location.city}, {location.region}, {location.country_name}
+              <div className="text-sm opacity-75 mt-1">
+                {isUsingPreciseLocation ? 
+                  "(using your precise location)" : 
+                  "(approximate location based on IP)"
+                }
+              </div>
             </div>
           )}
         </div>
@@ -135,7 +169,7 @@ export default function Home() {
                 height="100%"
                 frameBorder="0"
                 style={{ border: 0 }}
-                src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.02},${location.latitude-0.02},${location.longitude+0.02},${location.latitude+0.02}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
+                src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.longitude-0.05},${location.latitude-0.05},${location.longitude+0.05},${location.latitude+0.05}&layer=mapnik&marker=${location.latitude},${location.longitude}`}
               />
             </div>
           )}
